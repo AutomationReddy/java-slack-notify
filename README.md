@@ -8,12 +8,29 @@ A Java library to send automated test results as a notification to slack. All yo
 
 #### This library now only supports the TestNG framework. (Cucumber support will be added soon). This can be used in mobile, web and api automation frameworks.
 
+### Maven Dependency:
+
+```xml
+<dependency>
+  <groupId>io.github.automationreddy</groupId>
+  <artifactId>java-slack-notify</artifactId>
+  <version>1.0.0</version>
+</dependency>
+```
+
+### Gradle
+
+```gradle
+implementation group: 'io.github.automationreddy', name: 'java-slack-notify', version: '1.0.0'
+```
+
 ## Usage
 
 1. Create `slack.properties` file and keep in your `src/main/resources` folder
 2. Add the following keys and values to it `WEBHOOK_URL=<Webhook URL>` and `NOTIFY_ONLY_ON_FAILURE=true or false`
 3. Add the `TestNGReporter` listener either to the test class or in the `testng.xml` file (Cucumber support is in progress)
 
+#### Adding listener at class level
 
 ```java
 @Listeners(TestNGReporter.class)
@@ -21,6 +38,8 @@ public class TestClass {
   //ToDo
  }
 ```
+
+#### Adding listener in testng.xml
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>

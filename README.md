@@ -2,11 +2,16 @@
 
 A Java library to send automated test results as a notification to slack. All you need is to add this library as a dependency in your project.
 
+## Features
+
+- Supports Web, Mobile and API test automation
+- Supports TestNG framework (Cucumber is in progress)
+- Provides fail/pass info on suite, test and method level
+- Notifies if a test is retried - pass or fail
+
 ## Prerequisites
 
  - Slack webhook URL - see this [link](https://api.slack.com/messaging/webhooks#create_a_webhook) on how to get one
-
-#### This library now only supports the TestNG framework. (Cucumber support will be added soon). This can be used in mobile, web and api automation frameworks.
 
 ### Maven Dependency:
 

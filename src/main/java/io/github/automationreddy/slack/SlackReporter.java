@@ -1,12 +1,13 @@
 package io.github.automationreddy.slack;
 
+import com.google.common.collect.Lists;
 import com.slack.api.Slack;
 import com.slack.api.model.block.*;
 import com.slack.api.model.block.composition.MarkdownTextObject;
 import com.slack.api.model.block.composition.PlainTextObject;
 import com.slack.api.model.block.element.BlockElements;
 import com.slack.api.webhook.Payload;
-import com.slack.api.webhook.WebhookResponse;
+import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -35,6 +36,7 @@ public class SlackReporter {
     private static int TOTAL_PASSED_TESTS = 0;
     private static int TOTAL_FAILED_TESTS = 0;
     public static boolean IS_SUIT_FAILED;
+    private static final String resultUid = "ID-" + RandomStringUtils.randomAlphanumeric(10);
 
     private SlackReporter() {
     }
@@ -43,13 +45,17 @@ public class SlackReporter {
      * Sends message to a Slack channel
      *
      * @param blocksList Message
-     * @throws IOException IOException
      */
-    public static void sendNotification(List<LayoutBlock> blocksList) throws IOException {
+    public static void sendNotification(List<LayoutBlock> blocksList) {
         Slack slack = Slack.getInstance();
-        Payload payload = Payload.builder().blocks(blocksList).build();
-        WebhookResponse webhookResponse = slack.send(URL, payload);
-        System.out.println(webhookResponse);
+        splitBlocksInToChunks(blocksList).forEach(block -> {
+            Payload payload = Payload.builder().blocks(block).build();
+            try {
+                System.out.println(slack.send(URL, payload) + "  " + resultUid);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     /**
@@ -114,12 +120,12 @@ public class SlackReporter {
             String suiteName = entry.getKey();
             ArrayList<Object[]> testContextInfo = entry.getValue();
             IS_SUIT_FAILED = isSuiteFailed(testContextInfo);
-            blocksList.add(buildContext(buildContextBlockElements("*Suite Info:*")));
+            blocksList.add(buildContext(buildContextBlockElements("*Suite Info:*     Result ID: " + resultUid)));
             buildHeaderMessageWithStatus(IS_SUIT_FAILED, suiteName);
             buildDurationWithBranchName(suiteDuration);
             blocksList.add(buildDivider());
             testContextInfo.forEach(testContext -> {
-                blocksList.add(buildContext(buildContextBlockElements("*Test Name:*")));
+                blocksList.add(buildContext(buildContextBlockElements("*Test Name:*     Result ID: " + resultUid)));
                 buildHeaderMessageWithStatus(isTestContextFailed(testContext), testContext[0].toString());
                 buildDurationWithIcon(testContext[1].toString());
                 blocksList.add(buildDivider());
@@ -127,7 +133,7 @@ public class SlackReporter {
                     String[] testClassDetails = e.getKey().split("-->");
                     ArrayList<Object[]> testResults = e.getValue();
                     if (testClassDetails[1].equals(testContext[0])) {
-                        blocksList.add(buildContext(buildContextBlockElements("*Test Class:*")));
+                        blocksList.add(buildContext(buildContextBlockElements("*Test Class:*     Result ID: " + resultUid)));
                         Object[] resultCount = buildTestClassHeaderWithStats(testClassDetails[0], testResults);
                         blocksList.add(buildContext(buildContextBlockElements("*Test Results:*")));
                         blocksList.add(buildDivider());
@@ -146,15 +152,16 @@ public class SlackReporter {
                         blocksList.add(buildDivider());
                     }
                 }
-                blocksList.add(buildContext(buildContextBlockElements("End of results for the test name *" + testContext[0] + "*")));
+                blocksList.add(buildContext(buildContextBlockElements("End of results for the test *" + testContext[0] + "*     Result ID: " + resultUid)));
             });
             blocksList.add(buildMarkDownSection("🔵 *Total Tests:* " + (TOTAL_PASSED_TESTS + TOTAL_FAILED_TESTS)  + " " +
                     "     🟢 *Passed Tests:* " + TOTAL_PASSED_TESTS + "      🔴 *Failed Tests:* " + TOTAL_FAILED_TESTS));
-            blocksList.add(buildContext(buildContextBlockElements("End of results for the test suite *" + suiteName + "*")));
+            blocksList.add(buildContext(buildContextBlockElements("End of results for the test suite *" + suiteName + "*     Result ID: " + resultUid)));
             blocksList.add(buildDivider());
             TOTAL_PASSED_TESTS = 0;
             TOTAL_FAILED_TESTS = 0;
         }
+        System.out.println(blocksList);
         return blocksList;
     }
 
@@ -230,6 +237,15 @@ public class SlackReporter {
         }
         blocksList.add(buildMarkDownSection(testName + passFailInfo));
         return new Object[]{passedTests, failedTests};
+    }
+
+    /**
+     * It helps to split the list into chunks of given size
+     * @param blocksList message blocks
+     * @return List of layout block lists
+     */
+    private static List<List<LayoutBlock>> splitBlocksInToChunks(List<LayoutBlock> blocksList) {
+        return Lists.partition(blocksList, 50);
     }
 }
 

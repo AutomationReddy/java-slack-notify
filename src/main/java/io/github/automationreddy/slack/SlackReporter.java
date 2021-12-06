@@ -37,6 +37,7 @@ public class SlackReporter {
     private static int TOTAL_FAILED_TESTS = 0;
     public static boolean IS_SUIT_FAILED;
     private static final String resultUid = "ID-" + RandomStringUtils.randomAlphanumeric(10);
+    private static final boolean showOnlyFailedResults = Objects.nonNull(properties.getProperty("SHOW_FAILED_RESULTS_ONLY")) && properties.getProperty("SHOW_FAILED_RESULTS_ONLY").equalsIgnoreCase("true");
 
     private SlackReporter() {
     }
@@ -133,19 +134,24 @@ public class SlackReporter {
                     String[] testClassDetails = e.getKey().split("-->");
                     ArrayList<Object[]> testResults = e.getValue();
                     if (testClassDetails[1].equals(testContext[0])) {
-                        blocksList.add(buildContext(buildContextBlockElements("*Test Class:*     Result ID: " + resultUid)));
+                        blocksList.add(buildContext(buildContextBlockElements("*Test Class:*")));
                         Object[] resultCount = buildTestClassHeaderWithStats(testClassDetails[0], testResults);
-                        blocksList.add(buildContext(buildContextBlockElements("*Test Results:*")));
-                        blocksList.add(buildDivider());
+                        if (!(showOnlyFailedResults && (int) resultCount[1] == 0)) {
+                            blocksList.add(buildContext(buildContextBlockElements("*Test Results:*")));
+                            blocksList.add(buildDivider());
+                        }
                         testResults.forEach(result -> {
                             String retriedMessage = result[2].equals(true) ? " [❗It was a retried test. Please check your logs for more info]" : "";
                             String methodName;
                             if (result[1].equals(1)) {
-                                methodName = "* ✅   " + result[0] + "*" + retriedMessage;
+                                if(!showOnlyFailedResults) {
+                                    methodName = "* ✅   " + result[0] + "*" + retriedMessage;
+                                    blocksList.add(buildContext(buildContextBlockElements(methodName)));
+                                }
                             } else {
                                 methodName = "* ❌   " + result[0] + "*" + retriedMessage;
+                                blocksList.add(buildContext(buildContextBlockElements(methodName)));
                             }
-                            blocksList.add(buildContext(buildContextBlockElements(methodName)));
                         });
                         TOTAL_PASSED_TESTS += (int) resultCount[0];
                         TOTAL_FAILED_TESTS += (int) resultCount[1];
@@ -153,10 +159,14 @@ public class SlackReporter {
                     }
                 }
                 blocksList.add(buildContext(buildContextBlockElements("End of results for the test *" + testContext[0] + "*     Result ID: " + resultUid)));
+                blocksList.add(buildDivider());
             });
             blocksList.add(buildMarkDownSection("🔵 *Total Tests:* " + (TOTAL_PASSED_TESTS + TOTAL_FAILED_TESTS)  + " " +
                     "     🟢 *Passed Tests:* " + TOTAL_PASSED_TESTS + "      🔴 *Failed Tests:* " + TOTAL_FAILED_TESTS));
-            blocksList.add(buildContext(buildContextBlockElements("End of results for the test suite *" + suiteName + "*     Result ID: " + resultUid)));
+            if (showOnlyFailedResults && IS_SUIT_FAILED) {
+                blocksList.add(buildContext(buildContextBlockElements("*You have chosen to get only the failed results. However, the above total/pass/fail count is calculated on suite level*")));
+            }
+            blocksList.add(buildContext(buildContextBlockElements("End of results for the test suite *" + suiteName + "*     Result " + resultUid)));
             blocksList.add(buildDivider());
             TOTAL_PASSED_TESTS = 0;
             TOTAL_FAILED_TESTS = 0;

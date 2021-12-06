@@ -24,22 +24,23 @@ A Java library to send automated test results as a notification to slack. All yo
 <dependency>
   <groupId>io.github.automationreddy</groupId>
   <artifactId>java-slack-notify</artifactId>
-  <version>1.1.1</version>
+  <version>1.2.0</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```gradle
-implementation group: 'io.github.automationreddy', name: 'java-slack-notify', version: '1.1.1'
+implementation group: 'io.github.automationreddy', name: 'java-slack-notify', version: '1.2.0'
 ```
 
 ## Usage
 
 1. Create `slack.properties` file and keep in your `src/main/resources` folder
-2. Add the following keys and values to it `WEBHOOK_URL=<Webhook URL>` and `NOTIFY_ONLY_ON_FAILURE=true or false`
-3. If you want to include the branch name where your tests are executed, you can do so by adding BRANCH_NAME and BRANCH_LINK as runtime variables. Make sure to add both variables
-```html
+2. Add the following keys and values to it `WEBHOOK_URL=<Webhook URL>`, `NOTIFY_ONLY_ON_FAILURE=true or false` and `SHOW_FAILED_RESULTS_ONLY=true or false`
+3. If you want to include the branch name where your tests are executed, you can do so by adding BRANCH_NAME and BRANCH_LINK as runtime or environment variables. Make sure to add both variables
+##### Example:
+```editorconfig
 //If you are using maven, pass the arguments as below:
 -DBRANCH_NAME=test-branch -DBRANCH_LINK=https://github.com
 ```
@@ -84,13 +85,23 @@ Default: `NA`
 
 Based on this option, notification will be sent. If this is true, notification will only be sent when the test is failed. Otherwise, it sends irrespective of the test status
 
-Type: `String` <br/>
+Type: `Boolean` <br/>
+Optional: `YES` <br/>
+Default: `false`
+
+### SHOW_FAILED_RESULTS_ONLY
+
+If you want to receive only the failed results and ignore the passed, set this to true. Otherwise, all results will be included in the message
+
+Type: `Boolean` <br/>
 Optional: `YES` <br/>
 Default: `false`
 
 ## Screenshot
 
 ![Slack Notification](assets/slack-notify.png)
+
+![Only Failed Tests](assets/only-failed-results.png)
 
 ## Limitations
 

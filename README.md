@@ -22,14 +22,14 @@ A Java library to send automated test results as a notification to slack. All yo
 <dependency>
   <groupId>io.github.automationreddy</groupId>
   <artifactId>java-slack-notify</artifactId>
-  <version>1.1.0</version>
+  <version>1.1.1</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```gradle
-implementation group: 'io.github.automationreddy', name: 'java-slack-notify', version: '1.1.0'
+implementation group: 'io.github.automationreddy', name: 'java-slack-notify', version: '1.1.1'
 ```
 
 ## Usage

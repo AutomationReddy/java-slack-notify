@@ -11,6 +11,8 @@ A Java library to send automated test results as a notification to slack. All yo
 - Provides test duration info on suite and test level
 - Provides branch details where the tests are executed
 
+#### Example project is [here](https://github.com/AutomationReddy/slack-test)
+
 ## Prerequisites
 
  - Slack webhook URL - see this [link](https://api.slack.com/messaging/webhooks#create_a_webhook) on how to get one
